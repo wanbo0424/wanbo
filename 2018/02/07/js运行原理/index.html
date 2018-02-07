@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+  <meta name="viewport" content="width=932" >
+  <meta name="MobileOptimized" content="932" >
+  <meta name="generator" content="mamba out">
+  <title>js运行原理</title>
+
+  <link rel="stylesheet" type="text/css" href="/css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="/css/awe.css">
+  <link rel="stylesheet" type="text/css" href="/css/social-likes.css">
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="">
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="/js/imgLiquid-min.js"></script>
+  <script src="/js/social-likes.min.js"></script>
+</head>
+
+<body>
+  <div class="main-container">
+    
+
+<div class="box profile">
+  <div class="heading" style="background: #3e5354 url(/images/bg-heading.jpg) no-repeat;">
+    <div class="profile-img">
+      <a href="//kywk.github.io/"><img src="/images/img-profile.jpg" width="154" height="150" alt="image description"></a>
+    </div>
+    <strong class="user"><a href="/">mamba out</a></strong>
+    <span class="locate">Taiwan</span>
+  </div>
+  <div class="setting">
+    <a href="//kywk.github.io/" class="btn-profile">Profile</a>
+    <a href="/" class="btn-photos">Photos</a>
+    <a href="/" class="btn-follow">Follow me</a>
+  </div>
+</div>
+
+    
+<div class="two-columns post-page">
+  <div class="content">
+
+    <div class="post box nocover">
+      <em class="date"><span>07</span>Feb</em>
+      <h2 class="post-title"><a href="/2018/02/07/js运行原理/">js运行原理</a></h2>
+      <div class="post-content"><p>   自学了大半年的前端，感觉学习过程还算顺畅但是在前段世间接触nodejs时看到了异步编程，回调函数，非阻塞这几个关键词，在之前的学习中几乎没有接触到过，这提起了我很大的兴趣，让我回到起点重新研究js也就是最基础也是最重要的就是js运行原理，下面做一下简单的总结<br>首先要理解js的几个核心概念：<br>JS Engine（JS引擎）<br>Runtime（运行上下文）<br>Call Stack (调用栈)<br>Event Loop（事件循环）<br>Callback （回调）<br>1.JS Engine<br>    就我的理解js引擎其实与java的jvm有点类似，JS引擎主要是对JS代码进行词法、语法等分析，通过编译器将代码编译成可执行的机器码让计算机去执行。<br>目前最流行的JS引擎非V8莫属了，Chrome浏览器和Node.js采用的引擎就是V8引擎。JS引擎中也有堆(Memory Heap)和栈(Call Stack)的概念     </p>
+<p>栈。用来存储方法调用的地方，以及基础数据类型(如var a = 1)也是存储在栈里面的，会随着方法调用结束而自动销毁掉(入栈–&gt;方法调用后–&gt;出栈)。</p>
+<p>堆。JS引擎中给对象分配的内存空间是放在堆中的。如var foo = {name: ‘foo’} 那么这个foo所指向的对象是存储在堆中的。</p>
+<p>2.RunTime<br>    JS在浏览器中可以调用浏览器提供的API，如window对象，DOM相关API等。这些接口并不是由V8引擎提供的，是存在与浏览器当中的。因此简单来说，对于这些相关的外部接口，可以在运行时供JS调用，以及JS的事件循环(Event Loop)和事件队列(Callback Queue)，把这些称为RunTime。有些地方也把JS所用到的core lib核心库也看作RunTime的一部分。<br>同样，在Node.js中，可以把Node的各种库提供的API称为RunTime。所以可以这么理解，Chrome和Node.js都采用相同的V8引擎，但拥有不同的运行环境(RunTime Environments)<br>3.Call Stack<br>    JS被设计为单线程运行的，这是因为JS主要用来实现很多交互相关的操作，如DOM相关操作，如果是多线程会造成复杂的同步问题。因此JS自诞生以来就是单线程的，而且主线程都是用来进行界面相关的渲染操作 (为什么说是主线程，因为HTML5 提供了Web Worker，独立的一个后台JS，用来处理一些耗时数据操作。因为不会修改相关DOM及页面元素，因此不影响页面性能)，如果有阻塞产生会导致浏览器卡死。<br>如果一个递归调用没有终止条件，是一个死循环的话，会导致调用栈内存不够而溢出，如：<br>function foo() {<br>    foo();<br>}<br>foo();<br>例子中foo函数循环调用其本身，且没有终止条件，浏览器控制台输出调用栈达到最大调用次数。</p>
+<p>JS线程如果遇到比较耗时操作，如读取文件，AJAX请求操作怎么办？这里JS用到了Callback回调函数来处理。<br>对于Call Stack中的每个方法调用，都会形成它自己的一个执行上下文Execution Context<br>4.Event Loop &amp; Callback<br>   JS通过回调的方式，异步处理耗时的任务。一个简单的例子：<br>var result = ajax(‘…’);<br>console.log(result);<br>此时并不会得到result的值，result是undefined。这是因为ajax的调用是异步的，当前线程并不会等到ajax请求到结果后才执行console.log语句。而是调用ajax后请求的操作交给回调函数，自己是立刻返回。正确的写法应该是：<br>ajax(‘…’, function(result) {<br>    console.log(result);<br>})<br>此时才能正确输出请求返回的结果。<br>JS引擎其实并不提供异步的支持，异步支持主要依赖于运行环境(浏览器或Node.js)。</p>
+<p>所以什么是Event Loop?<br>Event Loop只做一件事情，负责监听Call Stack和Callback Queue。当Call Stack里面的调用栈运行完变成空了，Event Loop就把Callback Queue里面的第一条事件(其实就是回调函数)放到调用栈中并执行它，后续不断循环执行这个操作。</p>
+<p>最后总结一下，JS的运行原理主要有以下几个方面：</p>
+<p>JS引擎主要负责把JS代码转为机器能执行的机器码，而JS代码中调用的一些WEB API则由其运行环境提供，这里指的是浏览器。</p>
+<p>JS是单线程运行，每次都从调用栈出取出代码进行调用。如果当前代码非常耗时，则会阻塞当前线程导致浏览器卡顿。</p>
+<p>回调函数是通过加入到事件队列中，等待Event Loop拿出并放到调用栈中进行调用。只有Event Loop监听到调用栈为空时，才会从事件队列中从队头拿出回调函数放进调用栈里。</p>
+</div>
+
+      <div class="bottom-panel">
+        <ul class="social-likes" data-url="/2018/02/07/js运行原理/">
+          <li class="facebook" title="like"></li>
+          <li class="twitter" title="twitte"></li>
+          <li class="plusone" title="google"></li>
+        </ul>
+      </div>
+    </div>
+    
+  </div>
+
+  <div class="widgetarea">
+
+    
+    
+
+<div class="tagcloud" id="fbox-tagcloud" style="margin:10px; display:none; overflow: hidden"></div>
+
+    
+
+    
+      
+
+<ul class="widget blogroll">
+  <h3 class="title">Recent Post</h3>
+  
+    
+    <li>
+      <div class="text-holder">
+        <h3 class="link-title"><a href="/2018/02/07/js运行原理/">js运行原理</a></h3>
+        <p>   自学了大半年的前端，感觉学习过程还算顺畅但是在前段世间接触nodejs时看到了异步编程，回调函</p>
+      </div>
+    </li>
+  
+    
+    <li>
+      <div class="text-holder">
+        <h3 class="link-title"><a href="/2018/01/04/mamba-out-1/">mamba out</a></h3>
+        <p>先恭喜一下自己个人博客搭建成功，有一点成就感，写点什么呢？当给自己配置博客的标题时想都没想的出现ma</p>
+      </div>
+    </li>
+  
+</ul>
+
+
+    
+
+  </div>
+</div>
+
+
+  </div>
+  
+<div class="footer">
+  <div class="container">
+    <a href="//github.com/kywk/hexo-theme-awe">AWE for hexo</a> inspired by <a href="http://goo.gl/H8OMRE">Awesome UI Kit</a>,
+    ported by <a href="//kywk.github.io/">MooCow (Aka. kywk)</a>.
+    
+    &copy; 2018 wanbo Yin All Rights Reserved
+    
+  </div>
+</div>
+
+  <!-- disqus -->
+
+
+
+<script>
+$(document).ready(function() {
+  $('.imgLiquid').imgLiquid({fill:true, fadeInTime:500});
+});
+</script>
+
+
+<!-- fancybox -->
+<link rel="stylesheet" href="/package/fancybox/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+<script type="text/javascript" src="/package/fancybox/jquery.fancybox.pack.js?v=2.1.5"></script>
+<script type="text/javascript">
+(function($){
+  $(".fancybox").fancybox();
+  $(".various").fancybox({
+    maxWidth  : 800,
+    maxHeight : 600,
+    fitToView : false,
+    width   : '70%',
+    height    : '70%',
+    autoSize  : true,
+    closeClick  : false,
+    openEffect  : 'none',
+    closeEffect : 'none'
+  });
+})(jQuery);
+</script>
+
+</body>
+</html>
